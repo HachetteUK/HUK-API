@@ -1,0 +1,349 @@
+
+swagger: '2.0'
+info:
+  version: '1.0.6'
+  title: People API
+  description: HUK API | To Access HUK Contributors, including Authors, Illustrators etc.
+host: hachetteuk-test.apigee.net
+basePath: /api/v1
+schemes:
+  - https
+securityDefinitions:
+  APIKeyHeader:
+    type: apiKey
+    in: header
+    name: x-apikey
+security:
+  - APIKeyHeader: []
+tags:
+  - name: people
+    description: Locate people who contribute in some way to Hachette UK Products.
+  - name: utility
+    description: Utility methods for people.
+paths:
+  /people:
+    get:
+      tags:
+        - people
+      summary: Gets a list of People who have worked and contributed on our products.
+      description: |
+        Gets a list of `people` objects - normally Authors.
+
+        Optional query param of **limit** determines
+        size of returned array
+      produces:
+        - application/json
+      parameters:
+        -
+          name: filterByTimestamp
+          in: query
+          description: |   
+             Get products updated since this date & time. Please note we require you to `convert to UK GMT`. Format is:
+
+              YYYY-MM-DDTHH:MM:SS
+ 
+              YYYY = Year
+              MM = Month
+              DD = Day
+              T = Time
+              HH = Hour - 24 hour
+              MM = Minute
+              SS = Seconds
+
+             Example format - 2018-07-04T09:00:00
+          required: false
+          type: string
+        -
+          name: filterByRoles
+          in: query
+          description: Get People with these Roles
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+        -
+          name: filterByDivisions
+          in: query
+          description: Filters people with one of these Divisons.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+        -
+          name: filterByImprints
+          in: query
+          description: Filters people with one of these Imprints.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+        -
+          name: filterByIsActive
+          in: query
+          description: Filters people who are Active (or not).
+          required: false
+          type: boolean
+        -
+          name: limit
+          in: query
+          description: Size of collection to be returned.
+          required: false
+          type: number
+          format: integer
+          default: 20
+          minimum: 1
+          maximum: 999
+        -
+          name: page
+          in: query
+          description: Page number you wish returned.
+          required: false
+          type: number
+      responses:
+        200:
+          description: Successful response containing a Hachette Person
+          schema:
+            type: object
+            properties:
+              currentPage:
+                type: integer
+                description: If using Paging, this will return current page.
+              record:
+                type: array
+                items:
+                  $ref: '#/definitions/Person'
+        204:
+          description: No content found.
+        401:
+          $ref: '#/responses/UnauthorizedError'
+  /people/{id}:
+    get:
+      tags:
+        - people
+      summary: Get a Person using his or hers Id
+      description: |
+        Gets `Person` object (normally a book).
+      produces:
+        - application/json
+      parameters:
+        -
+          name: id
+          in: path
+          description: Person to fetch
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successful response containing a Hachette Person
+          schema:
+            type: object
+            properties:
+              record:
+                type: array
+                items:
+                  $ref: '#/definitions/Person'
+        204:
+          description: No content found.
+  /people/count:
+    get:
+      tags:
+        - utility
+      summary: Gets a count of Product records.
+      description: |
+        Gets a count of product records. Useful before Paginating and iterating through a collection.
+      produces:
+        - application/json
+      parameters:
+        -
+          name: filterByTimestamp
+          in: query
+          description: |   
+             Get products updated since this date & time. Please note we require you to `convert to UK GMT`. Format is:
+
+              YYYY-MM-DDTHH:MM:SS
+ 
+              YYYY = Year
+              MM = Month
+              DD = Day
+              T = Time
+              HH = Hour - 24 hour
+              MM = Minute
+              SS = Seconds
+
+             Example format - 2018-07-04T09:00:00
+          required: false
+          type: string
+        -
+          name: filterByRoles
+          in: query
+          description: Get People with these Roles
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+        -
+          name: filterByImprints
+          in: query
+          description: Filters people with one of these Imprints.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+        -
+          name: filterByIsActive
+          in: query
+          description: Filters people who are Active (or not).
+          required: false
+          type: boolean
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: object
+            properties:
+              count:
+                type: number
+                description: record count
+        401:
+          $ref: '#/responses/UnauthorizedError'
+responses:
+  UnauthorizedError:
+    description: API key is missing or invalid.
+    headers:
+      WWW_Authenticate:
+        type: string
+definitions:
+  Person: 
+    title: Person
+    description: Person who contribute towards a Product.
+    type: object
+    properties:
+      id:
+        type: string
+        description: Full ID for the person
+      firstName:
+        type: string
+        description: First Name of the person.
+      lastName:
+        type: string
+        description: Last Name of the person.
+      title:
+        type: string
+        description: Title of the person.
+      biography:
+        type: string
+        description: Person's Biography.
+      isActive:
+        description: Is the record active.
+        type: boolean
+      productsContributedTo:
+        description: Products associated with this Person and their role they played.
+        type: array
+        items:
+          $ref: '#/definitions/Product'
+      images:
+        description: Images associated to a Person
+        type: array
+        items:
+          $ref: '#/definitions/Image'
+      sociallinks:
+        description: Collection of Social Links for the Person.
+        type: array
+        items:
+          $ref: '#/definitions/Sociallink'
+      link:
+        $ref: '#/definitions/Link'  
+  Product:
+    title: Products
+    description: Products Contributed to.
+    type: object
+    properties:
+      editionId:
+        type: number
+        description: Edition Id of the Product.
+      coverTitle:
+        type: string
+        description: Cover Title of the Product.
+      isbn13:
+        type: string
+        description: 13 digit ISBN
+      workId:
+        type: string
+        description: Work Id associated to the Edition.
+      division:
+        type: string
+        description: Publishers name.
+      imprint:
+        type: string
+        description: Imprint Name.
+      role:
+        type: string
+        description: The role the Person has made to the book.
+        enum:
+          - Author
+          - Illustrator
+          - Reader
+          - Editor
+      code:
+        type: string
+        description: Role ONIX Code.
+  Image:
+    title: Image
+    description: Images associated with the Person.
+    type: object
+    properties:
+      url:
+        type: string
+        description: URL to download the image
+      type:
+        type: string
+        description: Image Type.
+        enum:
+          - Original
+          - Medium
+          - Thumbnail
+  Sociallink:
+    title: Social Links
+    description: Social links (liek Facebook, Twitter etc) for the Person.
+    type: object
+    properties:
+      id: 
+        type: number
+        description: Id of a Link.
+      url:
+        type: string
+        description: Link to the website.
+      type:
+        type: string
+        description: Type of social link.
+        enum:
+          - Author
+          - Facebook
+          - Twitter
+  Relations:
+    title: Relations
+    description: Relationships exposed for Links
+    type: string
+    enum: &RELS
+      - self
+      - next
+      - previous
+  Link:
+    title: Link
+    description: Links/Relationships to other Resources.
+    properties:
+      href:
+        type: string
+        title: URI back to the object.
+      method:
+        type: string
+        title: HTTP verb.
+      rel:
+        type: string
+        title: Link type. Example 'self' for the object.
+        enum: *RELS
