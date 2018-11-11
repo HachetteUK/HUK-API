@@ -2,8 +2,23 @@ swagger: '2.0'
 info:
   version: '1.0.6'
   title: Product API
-  description: HUK API | To Access HUK products.
-host: hachetteuk-prod.apigee.net
+  description: | 
+    HUK API To Access HUK products.
+
+    Our new Bibliographic API will allow you to access our Product data. 
+    Currently this is a Read-Only API (GET methods), which includes Images
+    and catregorization.
+
+    ## Endpoints
+    Currently we have two endpoints.
+
+    ### Test
+    hachetteuk-test.apigee.net 
+
+    ### Production
+    hachetteuk-prod.apigee.net
+
+host: hachetteuk-test.apigee.net
 basePath: /api/v1
 schemes:
   - https
@@ -20,7 +35,7 @@ tags:
   - name: utility
     description: Utility methods for products.
   - name: search
-    description: Full text searching **Coming Soon**
+    description: Full text searching
 paths:
   /products:
     get:
@@ -60,7 +75,7 @@ paths:
           description: Filters products with one of these Imprints.
           required: false
           type: array
-          collectionFormat: csv
+          collectionFormat: multi
           items:
             type: string
         -
@@ -69,7 +84,7 @@ paths:
           description: Filters products with one of these Divisions.
           required: false
           type: array
-          collectionFormat: csv
+          collectionFormat: multi
           items:
             type: string
         -
@@ -155,7 +170,7 @@ paths:
         - search
       summary: Search for a Product using its Title.
       description: |
-        Gets `product` objects.
+        Gets `product` search objects.
       produces:
         - application/json
       parameters:
@@ -165,11 +180,50 @@ paths:
           description: Title to search with.
           required: true
           type: string
+        -
+          name: filterByImprints
+          in: query
+          description: Filters products with one of these Imprints.
+          required: false
+          type: array
+          collectionFormat: multi
+          items:
+            type: string
+        -
+          name: filterByDivisions
+          in: query
+          description: Filters products with one of these Divisions.
+          required: false
+          type: array
+          collectionFormat: multi
+          items:
+            type: string
+        -
+          name: limit
+          in: query
+          description: Size of collection to be returned.
+          required: false
+          type: number
+          format: integer
+          default: 20
+          minimum: 1
+          maximum: 999
+        -
+          name: page
+          in: query
+          description: Page number you wish returned.
+          required: false
+          type: number        
+        - name: fuzzy
+          in: query
+          description: Use Fuzzy Search for Title
+          required: false
+          type: boolean
       responses:
         200:
           description: Successful response containing a Hachette product
           schema:
-              $ref: '#/definitions/Product'
+              $ref: '#/definitions/SearchProduct'
         204:
           description: No content found.
         400:
@@ -211,7 +265,7 @@ paths:
           description: Filters products with one of these Imprints.
           required: false
           type: array
-          collectionFormat: csv
+          collectionFormat: multi
           items:
             type: string
         -
@@ -220,7 +274,7 @@ paths:
           description: Filters products with one of these Divisions.
           required: false
           type: array
-          collectionFormat: csv
+          collectionFormat: multi
           items:
             type: string
         -
@@ -598,8 +652,28 @@ definitions:
       count:
         type: number
         description: Count of records.
-
-
-
+  SearchProduct:
+    title: Details from a Product Search
+    description: Record receives when doing a search
+    type: object
+    properties:
+      id: 
+        type: string
+        title: Record ID
+      isbn13:
+        type: string
+        description: ISBN13 which resides within the barcode.
+      coverTitle:
+        type: string
+        description: Title that appears on the cover of this Edition.
+      subTitle:
+        type: string
+        description: If the product has a sub title, it will appear here.
+      division:
+        type: string
+        description: Publishers name.
+      imprint:
+        type: string
+        description: Imprint name.
 
 
